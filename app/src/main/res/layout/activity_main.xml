@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_match"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#121212">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UserBot App"
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:layout_marginTop="40dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kotlin Powered"
+            android:textColor="#64B5F6"
+            android:textSize="14sp"
+            android:layout_marginBottom="30dp"/>
+
+        <!-- LOGIN FORM SECTION -->
+        <LinearLayout
+            android:id="@+id/loginFormContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:visibility="visible">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="API ID"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="#2196F3"
+                app:hintTextColor="#2196F3"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/apiIdInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:inputType="number"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="API HASH"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="#2196F3"
+                app:hintTextColor="#2196F3"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="#FFFFFF"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/apiHashInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:inputType="textPassword"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Номер телефона (+123...)"
+                android:layout_marginBottom="24dp"
+                app:boxStrokeColor="#2196F3"
+                app:hintTextColor="#2196F3"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/phoneInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:inputType="phone"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/requestCodeBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Запросить код"
+                android:backgroundTint="#1976D2"
+                android:textColor="#FFFFFF"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="15dp"/>
+
+        </LinearLayout>
+
+        <!-- VERIFICATION CODE SECTION -->
+        <LinearLayout
+            android:id="@+id/verificationContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Код из Telegram"
+                android:layout_marginBottom="16dp"
+                app:boxStrokeColor="#4CAF50"
+                app:hintTextColor="#4CAF50"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/codeInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:inputType="number"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/passwordInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Облачный пароль (2FA)"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone"
+                app:boxStrokeColor="#4CAF50"
+                app:hintTextColor="#4CAF50"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="#FFFFFF"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/passwordInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:inputType="textPassword"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/loginBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Войти"
+                android:backgroundTint="#388E3C"
+                android:textColor="#FFFFFF"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:cornerRadius="15dp"/>
+
+        </LinearLayout>
+
+        <!-- DASHBOARD SECTION -->
+        <LinearLayout
+            android:id="@+id/dashboardContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Управление аккаунтом"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="24dp"/>
+
+            <Button
+                android:id="@+id/pingBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="📩 Отправить пинг в Избранное"
+                android:backgroundTint="#424242"
+                android:textColor="#FFFFFF"
+                android:layout_marginBottom="16dp"
+                android:textAllCaps="false"
+                android:textSize="15sp"
+                app:cornerRadius="15dp"/>
+
+            <Button
+                android:id="@+id/parseBtn"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="👥 Спарсить список чатов"
+                android:backgroundTint="#424242"
+                android:textColor="#FFFFFF"
+                android:layout_marginBottom="24dp"
+                android:textAllCaps="false"
+                android:textSize="15sp"
+                app:cornerRadius="15dp"/>
+
+            <Button
+                android:id="@+id/logoutBtn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="Выйти из аккаунта"
+                android:backgroundTint="#D32F2F"
+                android:textColor="#FFFFFF"
+                android:textAllCaps="false"
+                app:cornerRadius="15dp"/>
+
+        </LinearLayout>
+
+        <!-- STATUS TEXT -->
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Введите данные для входа"
+            android:textColor="#9E9E9E"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="40dp"/>
+
+    </LinearLayout>
+</ScrollView>

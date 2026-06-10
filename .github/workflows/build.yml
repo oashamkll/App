@@ -9,36 +9,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'
           java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flet==0.23.2 telethon==1.34.0
+      - name: Build Android App (APK)
+        run: ./gradlew assembleDebug
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
-      - name: Build APK
-        run: |
-          flet build apk --project "UserBot" --org "com.oashamkll.userbot" --flutter-build-args="--android-skip-build-dependency-validation"
-          
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: UserBot-App-APK
-          path: build/apk/**/*.apk
+          path: app/build/outputs/apk/debug/*.apk
