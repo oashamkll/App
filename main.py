@@ -1,54 +1,57 @@
 import flet as ft
 from telethon import TelegramClient
+from telethon.errors import SessionPasswordNeededError
 import asyncio
 import os
+import tempfile
 
-# Инициализируем клиент глобально
-client = None
-
-def main(page: ft.Page):
+async def main(page: ft.Page):
     page.title = "TeleBot Manager"
     page.theme_mode = ft.ThemeMode.DARK
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.padding = 30
-    
-    global client
-    
+
     # Session state
     api_id = ""
     api_hash = ""
     phone = ""
     phone_code_hash = ""
 
+    # Load saved credentials
+    saved_api_id = page.client_storage.get("api_id") or ""
+    saved_api_hash = page.client_storage.get("api_hash") or ""
+    saved_phone = page.client_storage.get("phone") or ""
+
     # Ввод данных
-    api_id_input = ft.TextField(label="API ID", width=320, border_radius=15, prefix_icon=ft.icons.VKEY)
-    api_hash_input = ft.TextField(label="API HASH", width=320, password=True, can_reveal_password=True, border_radius=15, prefix_icon=ft.icons.PASSWORD)
-    phone_input = ft.TextField(label="Номер телефона (+123...)", width=320, border_radius=15, prefix_icon=ft.icons.PHONE)
+    api_id_input = ft.TextField(label="API ID", value=saved_api_id, width=320, border_radius=15, prefix_icon=ft.icons.KEY)
+    api_hash_input = ft.TextField(label="API HASH", value=saved_api_hash, width=320, password=True, can_reveal_password=True, border_radius=15, prefix_icon=ft.icons.PASSWORD)
+    phone_input = ft.TextField(label="Номер телефона (+123...)", value=saved_phone, width=320, border_radius=15, prefix_icon=ft.icons.PHONE)
     code_input = ft.TextField(label="Код из Telegram", width=320, border_radius=15, prefix_icon=ft.icons.NUMBERS, visible=False)
+    password_input = ft.TextField(label="Облачный пароль (2FA)", width=320, password=True, can_reveal_password=True, border_radius=15, prefix_icon=ft.icons.LOCK, visible=False)
 
     status_text = ft.Text("Введите данные для входа", color=ft.colors.GREY_400, text_align=ft.TextAlign.CENTER)
 
     # --- DASHBOARD UI ---
     dashboard_col = ft.Column(visible=False, horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=15)
-    
-    def on_ping_click(e):
-        asyncio.create_task(ping_action())
 
     async def ping_action():
         try:
-            global client
+            client = page.session.get("client")
+            if not client:
+                show_snack("Клиент не инициализирован!", ft.colors.RED_700)
+                return
             await client.send_message("me", "👋 Привет от UserBot! Я успешно запущен и работаю.")
             show_snack("Пинг отправлен в Избранное!", ft.colors.GREEN_700)
         except Exception as ex:
             show_snack(f"Ошибка: {ex}", ft.colors.RED_700)
 
-    def on_parse_click(e):
-        asyncio.create_task(parse_action())
-
     async def parse_action():
         try:
-            global client
+            client = page.session.get("client")
+            if not client:
+                show_snack("Клиент не инициализирован!", ft.colors.RED_700)
+                return
             dialogs = await client.get_dialogs(limit=10)
             chat_names = [d.name for d in dialogs if d.is_group or d.is_channel]
             if chat_names:
@@ -59,28 +62,28 @@ def main(page: ft.Page):
         except Exception as ex:
             show_snack(f"Ошибка: {ex}", ft.colors.RED_700)
 
+    async def on_ping_click(e):
+        await ping_action()
+
+    async def on_parse_click(e):
+        await parse_action()
+
     btn1 = ft.ElevatedButton("📩 Отправить пинг в Избранное", icon=ft.icons.MESSAGE, width=320, height=50, on_click=on_ping_click)
     btn2 = ft.ElevatedButton("👥 Спарсить список чатов", icon=ft.icons.LIST_ALT, width=320, height=50, on_click=on_parse_click)
-    
+
     dashboard_col.controls.extend([
         ft.Text("Управление аккаунтом", size=24, weight=ft.FontWeight.BOLD),
         btn1, btn2
     ])
 
     def show_snack(msg, color):
-        page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor=color)
-        page.snack_bar.open = True
-        page.update()
+        page.open(ft.SnackBar(ft.Text(msg), bgcolor=color))
 
     # --- LOGIN LOGIC ---
     login_col = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=15)
 
-    def request_code_click(e):
-        asyncio.create_task(request_code_action())
-
-    async def request_code_action():
+    async def request_code_click(e):
         nonlocal api_id, api_hash, phone, phone_code_hash
-        global client
         
         if not api_id_input.value or not api_hash_input.value or not phone_input.value:
             status_text.value = "Ошибка: заполните все поля!"
@@ -93,8 +96,25 @@ def main(page: ft.Page):
             api_hash = api_hash_input.value
             phone = phone_input.value
             
-            session_path = os.path.join(page.client_storage.get_path(), "userbot.session") if hasattr(page.client_storage, "get_path") else "userbot.session"
+            # Сохраняем введенные данные во внутреннее хранилище для удобства
+            page.client_storage.set("api_id", api_id_input.value)
+            page.client_storage.set("api_hash", api_hash_input.value)
+            page.client_storage.set("phone", phone_input.value)
+
+            # Путь для сессии — изолирован по id сессии
+            session_dir = tempfile.gettempdir()
+            session_path = os.path.join(session_dir, f"userbot_{page.session_id}")
+            
+            # Отключаем старый клиент, если он существовал
+            old_client = page.session.get("client")
+            if old_client:
+                try:
+                    await old_client.disconnect()
+                except Exception:
+                    pass
+
             client = TelegramClient(session_path, api_id, api_hash)
+            page.session.set("client", client)
             await client.connect()
             
             if not await client.is_user_authorized():
@@ -114,20 +134,49 @@ def main(page: ft.Page):
             status_text.color = ft.colors.RED_400
             page.update()
 
-    def login_click(e):
-        asyncio.create_task(login_action())
-
-    async def login_action():
+    async def login_click(e):
         nonlocal phone, phone_code_hash
-        global client
         if not code_input.value:
             return
             
+        client = page.session.get("client")
+        if not client:
+            status_text.value = "Ошибка: клиент не найден!"
+            status_text.color = ft.colors.RED_400
+            page.update()
+            return
+
         try:
             await client.sign_in(phone, code_input.value, phone_code_hash=phone_code_hash)
             show_dashboard()
+        except SessionPasswordNeededError:
+            status_text.value = "Требуется облачный пароль (2FA)!"
+            status_text.color = ft.colors.ORANGE_400
+            password_input.visible = True
+            login_btn.visible = False
+            login_2fa_btn.visible = True
+            page.update()
         except Exception as ex:
             status_text.value = f"Ошибка кода: {ex}"
+            status_text.color = ft.colors.RED_400
+            page.update()
+
+    async def login_2fa_click(e):
+        if not password_input.value:
+            return
+            
+        client = page.session.get("client")
+        if not client:
+            status_text.value = "Ошибка: клиент не найден!"
+            status_text.color = ft.colors.RED_400
+            page.update()
+            return
+
+        try:
+            await client.sign_in(password=password_input.value)
+            show_dashboard()
+        except Exception as ex:
+            status_text.value = f"Ошибка пароля: {ex}"
             status_text.color = ft.colors.RED_400
             page.update()
 
@@ -138,19 +187,34 @@ def main(page: ft.Page):
         dashboard_col.visible = True
         page.update()
 
+    # Закрываем сессию Telethon при закрытии сессии Flet
+    async def on_disconnect(e):
+        client = page.session.get("client")
+        if client:
+            try:
+                await client.disconnect()
+            except Exception:
+                pass
+    page.on_close = on_disconnect
+
     req_btn = ft.ElevatedButton("Запросить код", on_click=request_code_click, width=320, height=50, 
                                   style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=15), bgcolor=ft.colors.BLUE_600, color=ft.colors.WHITE))
     
     login_btn = ft.ElevatedButton("Войти", on_click=login_click, width=320, height=50, visible=False,
                                   style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=15), bgcolor=ft.colors.GREEN_600, color=ft.colors.WHITE))
 
+    login_2fa_btn = ft.ElevatedButton("Войти с паролем (2FA)", on_click=login_2fa_click, width=320, height=50, visible=False,
+                                      style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=15), bgcolor=ft.colors.GREEN_600, color=ft.colors.WHITE))
+
     login_col.controls.extend([
         api_id_input,
         api_hash_input,
         phone_input,
         code_input,
+        password_input,
         req_btn,
         login_btn,
+        login_2fa_btn,
         status_text
     ])
 
