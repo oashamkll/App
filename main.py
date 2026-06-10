@@ -22,7 +22,15 @@ def main(page: ft.Page):
         page.update()
 
     btn1 = ft.ElevatedButton("📩 Отправить пинг в Избранное", icon=ft.icons.MESSAGE, width=320, height=50, on_click=btn_action)
-    btn2 = ft.ElevatedButton("👥 Спарсить список чатов", icon=ft.icons.LIST_ALT, width=320, height=50, on_click=btn_action)
+    def scrape_users_action(e):
+        page.snack_bar = ft.SnackBar(
+            ft.Text("Функция парсинга запущена (требуется подключение Telethon)"), 
+            bgcolor=ft.colors.ORANGE_700
+        )
+        page.snack_bar.open = True
+        page.update()
+
+    btn2 = ft.ElevatedButton("👥 Спарсить список чатов и участников", icon=ft.icons.LIST_ALT, width=320, height=50, on_click=scrape_users_action)
     btn3 = ft.ElevatedButton("⚙️ Настроить автоответчик", icon=ft.icons.REPLY_ALL, width=320, height=50, on_click=btn_action)
     btn4 = ft.ElevatedButton("🧹 Очистить кэш", icon=ft.icons.CLEANING_SERVICES, width=320, height=50, on_click=btn_action)
     
